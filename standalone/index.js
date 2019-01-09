@@ -54,6 +54,14 @@ busboy.on("field", (key, value) => {
 });
 busboy.on("file", (name, file, filename, encoding, mimetype) => {
     console.log(`  Received file: ${name} = ${filename}; writing to ${UPLOADED_FILENAME}`);
+
+    // If, instead of `file.pipe()` here, we add listeners for the
+    // data and end events, busboy works correctly.
+    /*
+    file.on("data", (data) => console.log(`Read ${data.length} bytes of file data`));
+    file.on("end", () => console.log("Finished reading file"));
+    */
+
     file.pipe(fs.createWriteStream(UPLOADED_FILENAME));
 });
 busboy.on("finish", () => {
