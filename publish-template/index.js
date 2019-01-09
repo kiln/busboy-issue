@@ -38,7 +38,7 @@ async function formDataFile(key, filename, content_type) {
       contents
   ]);
 }
-const form_data_terminator = `\r\n--${BOUNDARY}--\r\n`;
+const form_data_terminator = Buffer.from(`\r\n--${BOUNDARY}--\r\n`);
 
 
 /* Send the HTTP request with two write() calls, pausing between them. */
