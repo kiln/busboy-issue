@@ -6,7 +6,13 @@ const HOST = "127.0.0.1",
       PORT = 8765,
       PATH = "/",
 
-      DELAY_MS = 0,
+      // Changing the value of DELAY_MS does not seem to affect the
+      // frequency of the problem, with the chunks combined as they
+      // are below. If the "file" and "bar" chunks are separate, then
+      // a smaller delay value makes the problem occur more frequently.
+      // A delay of 0 is recommended if testing that case.
+      DELAY_MS = 100,
+
       BOUNDARY = "u2KxIV5yF1y+xUspOQCCZopaVgeV6Jxihv35XQJmuTx8X3sh",
 
       FILE_SIZE = 100000;
@@ -29,22 +35,33 @@ function formDataFile(key, filename, content_type) {
 }
 const form_data_terminator = Buffer.from(`\r\n--${BOUNDARY}--\r\n`);
 
-/* The parts of the request. Each part is written separately. */
-const parts = [
+/* The chunks of the request. Each chunk is written separately. */
+const chunks = [
     formDataSection("foo", "foo value"),
-    formDataFile("file", "file.bin", "application/octet-stream"),
-    formDataSection("bar", "bar value"),
+
+    // Combining these two into the same chunk makes the problem
+    // happen more reliably. If they are written separately, and
+    // the value of DELAY_MS is small (ideally 0) then it still
+    // happens sometimes, I think when these happen to be combined
+    // into the same read on the server.
+    Buffer.concat([
+        formDataFile("file", "file.bin", "application/octet-stream"),
+        formDataSection("bar", "bar value"),
+    ]),
+
+    // Conversely, combining these two into the same chunk seems to
+    // prevent the problem from happening.
     formDataSection("baz", "baz value"),
     form_data_terminator
 ];
 
-function writeParts(req, parts) {
+function writeChunks(req, chunks) {
     let index = 0;
 
     function pf(resolve, reject) {
-        if (index == parts.length) return resolve();
+        if (index == chunks.length) return resolve();
         setTimeout(function() {
-            req.write(parts[index++]);
+            req.write(chunks[index++]);
             resolve(new Promise(pf));
         }, DELAY_MS);
     };
@@ -54,7 +71,7 @@ function writeParts(req, parts) {
 
 async function sendRequest() {
     let length = 0;
-    for (const part of parts) length += part.length;
+    for (const chunk of chunks) length += chunk.length;
 
     const req = http.request({
         host: HOST,
@@ -69,7 +86,7 @@ async function sendRequest() {
     });
 
     console.log("Sending request");
-    await writeParts(req, parts);
+    await writeChunks(req, chunks);
 
     return new Promise(function(resolve, reject) {
         req.on("error", reject);
