@@ -2,9 +2,19 @@ The code in this repository demonstrates an apparent problem with [busboy](https
 
 It consists of a server program (`server`), and a client program (`client`). Running the client against the server should result in a hang, usually on the first request.
 
+There is also a standalone demonstration that writes the chunks to busboy directly.
+
 Tested with Node v9.6.1.
 
-## Usage
+## Standalone demonstration
+
+```
+(cd standalone && npm start)
+```
+
+Note that it does not print field `bar`, nor does it print `Completed successfully!`.
+
+## Client/server demonstration
 
 In one terminal window, run:
 ```
