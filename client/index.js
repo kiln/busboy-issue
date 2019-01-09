@@ -10,7 +10,7 @@ const HOST = "127.0.0.1",
       // frequency of the problem, with the chunks combined as they
       // are below. If the "file" and "bar" chunks are separate, then
       // a smaller delay value makes the problem occur more frequently.
-      // A delay of 0 is recommended if testing that case.
+      // A delay of 0 is recommended for testing that case.
       DELAY_MS = 100,
 
       BOUNDARY = "u2KxIV5yF1y+xUspOQCCZopaVgeV6Jxihv35XQJmuTx8X3sh",
@@ -37,8 +37,6 @@ const form_data_terminator = Buffer.from(`\r\n--${BOUNDARY}--\r\n`);
 
 /* The chunks of the request. Each chunk is written separately. */
 const chunks = [
-    formDataSection("foo", "foo value"),
-
     // Combining these two into the same chunk makes the problem
     // happen more reliably. If they are written separately, and
     // the value of DELAY_MS is small (ideally 0) then it still
@@ -46,12 +44,12 @@ const chunks = [
     // into the same read on the server.
     Buffer.concat([
         formDataFile("file", "file.bin", "application/octet-stream"),
-        formDataSection("bar", "bar value"),
+        formDataSection("foo", "foo value"),
     ]),
 
     // Conversely, combining these two into the same chunk seems to
     // prevent the problem from happening.
-    formDataSection("baz", "baz value"),
+    formDataSection("bar", "bar value"),
     form_data_terminator
 ];
 
