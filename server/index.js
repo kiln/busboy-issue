@@ -23,6 +23,7 @@ const app = http.createServer(function(req, res) {
 
     console.log("Request received...");
     const busboy = new Busboy({ headers: req.headers });
+
     busboy.on("field", (key, value) => {
         console.log(`  ${key} = ${value}`);
     });
@@ -30,12 +31,13 @@ const app = http.createServer(function(req, res) {
         console.log(`  Received file: ${name} = ${filename}; writing to ${UPLOADED_FILENAME}`);
         file.pipe(fs.createWriteStream(UPLOADED_FILENAME));
     });
-    req.pipe(busboy);
     busboy.on("finish", () => {
         console.log("Sending response.\n");
         res.writeHead(200, {"Content-Type": "text/plain; charset=utf-8"});
         res.end("OK");
     });
+
+    req.pipe(busboy);
 });
 
 app.listen(PORT, HOST, () => {
