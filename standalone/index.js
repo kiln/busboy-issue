@@ -62,7 +62,9 @@ busboy.on("file", (name, file, filename, encoding, mimetype) => {
     file.on("end", () => console.log("Finished reading file"));
     */
 
-    file.pipe(fs.createWriteStream(UPLOADED_FILENAME));
+    const w = fs.createWriteStream(UPLOADED_FILENAME)
+    file.pipe(w);
+    w.on("finish", () => console.log("Finished writing file"));
 });
 busboy.on("finish", () => {
     console.log("Completed successfully!\n");
@@ -70,9 +72,13 @@ busboy.on("finish", () => {
 
 for (let chunk of chunks) {
     while (chunk.length > 65536) {
+        console.log("Writing 65536 bytes to busboy");
         busboy.write(chunk.slice(0, 65536));
         chunk = chunk.slice(65536);
     }
-    if (chunk.length > 0) busboy.write(chunk);
+    if (chunk.length > 0) {
+        console.log(`Writing ${chunk.length} bytes to busboy`);
+        busboy.write(chunk);
+    }
 }
 
